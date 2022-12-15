@@ -2,7 +2,7 @@
 """
 Created on Thu Dec 15 16:14:47 2022
 
-@author: jyu5
+@author: Jingyan Yu jingyan.yu@surrey.ac.uk; Alex Hagen-Zanker a.hagen-zanker@surrey.ac.uk
 """
 
 import numpy as np
