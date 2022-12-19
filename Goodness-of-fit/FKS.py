@@ -77,10 +77,9 @@ def mu(change_category_map_a,change_catetory_map_b,out_of_bounary_mask,change_ca
     fmapas = [f_change_catetory_edt_map(change_catetory_edt_mapa,beta) \
               for change_catetory_edt_mapa in change_catetory_edt_mapas]
     for category in change_categories:
-        fmapas[category][np.logical_not(change_catetory_map_b==category)] = np.nan
+        fmapas[change_categories.index(category)][np.logical_not(change_catetory_map_b==category)] = np.nan
     
     mu = np.nansum(np.dstack(fmapas),2)
-    mu[np.isnan(fmapas[0]) & np.isnan(fmapas[0]) & np.isnan(fmapas[0])]=np.nan
     return mu
 
 #eq3 The agreement of a cell - the degree to which the cell in map A belongs to the category found in map B and vice versa.
@@ -108,9 +107,9 @@ def PAB_E(change_category_mapa,change_category_mapb,out_of_bounary_mask,R,change
     for i in change_categories:
         for j in change_categories:
             Ax,Ac = np.unique(dis_as[i][j],return_counts=True)
-            Pai = sum(Ac)/R
+            # Pai = sum(Ac)/R
             Bx,Bc = np.unique(dis_bs[j][i],return_counts=True)
-            Pbj = sum(Bc)/R
+            # Pbj = sum(Bc)/R
             
             x, indicesA = np.unique(np.concatenate((Ax,Bx)),return_index=True)
             x, indicesB = np.unique(np.concatenate((Bx,Ax)),return_index=True)
@@ -121,18 +120,25 @@ def PAB_E(change_category_mapa,change_category_mapb,out_of_bounary_mask,R,change
             Bc = np.flip(Bc)
             x = np.flip(x)
 
-            cumAc = np.cumsum(Ac) / np.sum(Ac)
-            cumBc = np.cumsum(Bc) / np.sum(Bc)
+            cumAc = np.cumsum(Ac)
+            cumBc = np.cumsum(Bc)
             cumProbAB = cumAc * cumBc 
             
             probAB = np.diff(np.concatenate(([0],cumProbAB)))  
             
             Eij = np.sum(probAB * x)
-            E  = E + Pai * Pbj * Eij
-        return E
+            E  = E + Eij  #Pai * Pbj 
+    return E/R**2
     
 # eq 11 calculate FKS
-def FKS(change_category_mapa,change_category_mapb,out_of_bounary_mask,R,change_categories=[0,1,2],beta=1.0):
+def FKS(mapa_before,mapa_after,mapb_before,mapb_after,out_of_bounary_mask,R,change_categories=[0,1,2],beta=1.0):
+    mapa_after = mapa_after.copy()
+    mapa_before = mapa_before.copy()
+    mapb_after = mapb_after.copy()
+    mapb_before = mapb_before.copy()
+    change_category_mapa = change_catetory_map(mapa_before, mapa_after)
+    change_category_mapb = change_catetory_map(mapb_before, mapb_after)
+    
     P = mean_map_agreement(change_category_mapa,change_category_mapb,out_of_bounary_mask,R,change_categories,beta)
     E = PAB_E(change_category_mapa,change_category_mapb,out_of_bounary_mask,R,change_categories,beta)
     return (P-E)/(1-E)
